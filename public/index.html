@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Anodization Machine Status</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <h1>Anodization Machine Status</h1>
+    <span class="dept-badge">By Equipment Engineering Department</span>
+  </header>
+
+  <section class="summary-bar">
+    <div class="summary-item">
+      <div class="summary-label">TOTAL</div>
+      <div class="summary-value" id="sumTotal">0</div>
+      <div class="summary-unit">M/C</div>
+    </div>
+    <div class="summary-item online">
+      <div class="summary-label">ONLINE</div>
+      <div class="summary-value" id="sumOnline">0</div>
+      <div class="summary-unit">M/C</div>
+    </div>
+    <div class="summary-item offline">
+      <div class="summary-label">OFFLINE</div>
+      <div class="summary-value" id="sumOffline">0</div>
+      <div class="summary-unit">M/C</div>
+    </div>
+  </section>
+
+  <main class="grid" id="machineGrid">
+    <!-- machine cards injected by script.js -->
+  </main>
+
+  <!-- Popup / Modal -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <div class="modal-header">
+        <button class="modal-back" id="modalClose">&#9664;</button>
+        <div class="modal-title">
+          <span class="modal-title-main">Anodization</span>
+          <span class="modal-title-sub" id="modalMachineName">No. Z01</span>
+        </div>
+        <div class="tower-lamp">
+          <div class="tower-lamp-label">STATUS</div>
+          <div class="tower-lamp-lights">
+            <span class="lamp green" id="lampGreen"></span>
+            <span class="lamp red" id="lampRed"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-loading" id="modalLoading">Reading live data from PLC...</div>
+      <div class="bath-grid" id="bathGrid"></div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

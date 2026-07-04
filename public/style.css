@@ -1,0 +1,104 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Segoe UI', Consolas, Arial, sans-serif;
+  background: #0d0f12;
+  color: #e5e5e5;
+  padding: 20px;
+}
+
+.topbar { display: flex; align-items: baseline; gap: 16px; margin-bottom: 20px; }
+.topbar h1 { color: #d98a2b; font-size: 26px; letter-spacing: 1px; }
+.dept-badge { border: 1px solid #444; color: #9aa0a6; font-size: 11px; padding: 4px 10px; border-radius: 3px; }
+
+/* ---------- summary bar ---------- */
+.summary-bar {
+  display: flex;
+  gap: 40px;
+  border: 1px solid #2a2e33;
+  border-radius: 6px;
+  padding: 16px 24px;
+  margin-bottom: 20px;
+  background: #101318;
+}
+.summary-item { text-align: left; }
+.summary-label { font-size: 11px; color: #8a9099; letter-spacing: 1px; }
+.summary-value { font-size: 26px; font-weight: bold; color: #e5e5e5; }
+.summary-unit { font-size: 10px; color: #565b62; }
+.summary-item.online .summary-value { color: #6fd66f; }
+.summary-item.offline .summary-value { color: #d94f4f; }
+
+/* ---------- machine grid ---------- */
+.grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 8px; }
+@media (max-width: 1400px) { .grid { grid-template-columns: repeat(6, 1fr); } }
+@media (max-width: 900px)  { .grid { grid-template-columns: repeat(3, 1fr); } }
+
+.machine-card {
+  border: 1px solid #2a2e33;
+  border-radius: 6px;
+  padding: 10px 12px;
+  cursor: pointer;
+  background: #14181d;
+  transition: transform .08s ease, border-color .15s ease;
+}
+.machine-card:hover { transform: translateY(-2px); border-color: #555; }
+.machine-card.online  { background: linear-gradient(180deg, #182415 0%, #14181d 60%); }
+.machine-card.offline { background: #14181d; }
+.machine-card.stale   { background: #1a1414; opacity: 0.7; }
+
+.mc-name { font-weight: 600; color: #d98a2b; font-size: 13px; }
+.mc-row { display: flex; justify-content: space-between; align-items: baseline; margin-top: 6px; font-size: 12px; }
+.mc-time { color: #9aa0a6; }
+.mc-status { margin-top: 8px; font-size: 10px; letter-spacing: 1px; font-weight: bold; }
+.mc-status.online  { color: #6fd66f; }
+.mc-status.offline { color: #d94f4f; }
+.mc-status.stale   { color: #6b7078; }
+
+/* ---------- modal / popup ---------- */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.65);
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+.modal-overlay.open { display: flex; }
+
+.modal {
+  width: min(920px, 92vw);
+  max-height: 88vh;
+  overflow-y: auto;
+  background: #101318;
+  border: 1px solid #2a2e33;
+  border-radius: 10px;
+  padding: 22px 26px;
+}
+
+.modal-header { display: flex; align-items: center; gap: 18px; margin-bottom: 20px; }
+.modal-back { background: none; border: none; color: #9aa0a6; font-size: 18px; cursor: pointer; }
+.modal-title { flex: 1; }
+.modal-title-main { display: block; font-size: 14px; color: #8a9099; }
+.modal-title-sub { display: block; font-size: 24px; font-weight: bold; color: #e5e5e5; }
+
+.tower-lamp { text-align: center; }
+.tower-lamp-label { font-size: 9px; color: #6b7078; letter-spacing: 1px; margin-bottom: 6px; }
+.tower-lamp-lights { display: flex; gap: 10px; }
+.lamp { width: 26px; height: 26px; border-radius: 50%; background: #2a2e33; display: inline-block; }
+.lamp.green.active { background: #3ecf3e; box-shadow: 0 0 10px #3ecf3e; }
+.lamp.red.active   { background: #e33e3e; box-shadow: 0 0 10px #e33e3e; }
+
+.modal-loading { text-align: center; color: #8a9099; padding: 20px; font-size: 13px; }
+
+.bath-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+@media (max-width: 700px) { .bath-grid { grid-template-columns: 1fr; } }
+
+.bath-card { background: #181c22; border: 1px solid #2a2e33; border-radius: 8px; padding: 14px 16px; }
+.bath-title { font-weight: bold; letter-spacing: 1px; margin-bottom: 10px; color: #e5e5e5; }
+.bath-row { display: flex; justify-content: space-between; font-size: 13px; margin: 6px 0; color: #9aa0a6; }
+.bath-row .label { color: #d98a2b; font-weight: 600; }
+.bath-row .value { color: #e5e5e5; }
+.bath-row .run-tag { font-weight: bold; }
+.bath-row .run-tag.on  { color: #6fd66f; }
+.bath-row .run-tag.off { color: #6b7078; }

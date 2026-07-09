@@ -4,6 +4,8 @@ const fins = require('omron-fins');
 const debug = true;
 const clients = [];
 const responses = {};
+const pendingRequests = new Map();
+let nextSid = 1;
 
 // ============================
 // AREA
@@ -28,7 +30,48 @@ const AREA_BIT = {
 // ============================
 // CREATE HEADER
 // ============================
-function createHeader(machine) {
+function requestKey(ip, port, sid) {
+  return `${ip}:${port}:${sid}`;
+}
+
+function allocateSid(machine) {
+  for (let i = 0; i < 255; i++) {
+    const sid = nextSid;
+    nextSid = nextSid === 255 ? 1 : nextSid + 1;
+
+    if (!pendingRequests.has(requestKey(machine.ip, machine.port, sid))) {
+      return sid;
+    }
+  }
+
+  throw new Error("No available FINS SID");
+}
+
+client.on("message", (msg, rinfo) => {
+  const sid = msg[9];
+  let key = requestKey(rinfo.address, rinfo.port, sid);
+  let pending = pendingRequests.get(key);
+
+  // Some PLCs reply from a different UDP source port. Keep the SID/address
+  // match strict, but tolerate that port difference.
+  if (!pending) {
+    for (const [candidateKey, candidate] of pendingRequests) {
+      if (candidate.ip === rinfo.address && candidate.sid === sid) {
+        key = candidateKey;
+        pending = candidate;
+        break;
+      }
+    }
+  }
+
+  if (!pending) return;
+
+  pendingRequests.delete(key);
+  clearTimeout(pending.timer);
+  pending.resolve(msg);
+});
+
+function createHeader(machine, sid) {
 
   const b = Buffer.alloc(10);
 
@@ -45,7 +88,7 @@ function createHeader(machine) {
   b[7] = machine.pcNode;
   b[8] = 0x00;
 
-  b[9] = Math.floor(Math.random() * 255); // SID
+  b[9] = sid;
 
   return b;
 }
@@ -57,44 +100,39 @@ function sendFinsRaw(machine, cmd) {
 
   return new Promise((resolve, reject) => {
 
-    const header = createHeader(machine);
+    const sid = allocateSid(machine);
+    const header = createHeader(machine, sid);
     const packet = Buffer.concat([header, cmd]);
+    const key = requestKey(machine.ip, machine.port, sid);
 
     let done = false;
 
-    const cleanup = () => {
-      client.removeListener("message", onMsg);
-    };
-
-    const onMsg = (msg) => {
-
+    const settle = (fn, value) => {
       if (done) return;
 
       done = true;
       clearTimeout(timer);
-      cleanup();
-
-      resolve(msg);
+      pendingRequests.delete(key);
+      fn(value);
     };
 
     const timer = setTimeout(() => {
-
-      if (done) return;
-
-      done = true;
-      cleanup();
-
-      reject(new Error("Timeout"));
-
+      settle(reject, new Error(`Timeout reading ${machine.id}`));
     }, 1000);
 
-    client.once("message", onMsg);
+    pendingRequests.set(key, {
+      ip: machine.ip,
+      port: machine.port,
+      sid,
+      timer,
+      resolve: (msg) => settle(resolve, msg),
+      reject: (err) => settle(reject, err)
+    });
 
     client.send(packet, machine.port, machine.ip, (err) => {
       if (err) {
-        clearTimeout(timer);
-        cleanup();
-        reject(err);
+        const pending = pendingRequests.get(key);
+        if (pending) pending.reject(err);
       }
     });
 
@@ -118,23 +156,29 @@ async function readWords(machine, area, addr, count) {
 
   cmd.writeUInt16BE(count, 6);
 
-  try {
+  const res = await sendFinsRaw(machine, cmd);
 
-    const res = await sendFinsRaw(machine, cmd);
-
-    const result = [];
-
-    const max = Math.floor((res.length - 14) / 2);
-
-    for (let i = 0; i < Math.min(count, max); i++) {
-      result.push(res.readUInt16BE(14 + i * 2));
-    }
-
-    return result;
-
-  } catch {
-    return []; //
+  if (res.length < 14) {
+    throw new Error(`Short FINS response from ${machine.id}`);
   }
+
+  const endCode = res.readUInt16BE(12);
+  if (endCode !== 0) {
+    throw new Error(`FINS end code ${endCode.toString(16)} from ${machine.id}`);
+  }
+
+  const result = [];
+  const max = Math.floor((res.length - 14) / 2);
+
+  for (let i = 0; i < Math.min(count, max); i++) {
+    result.push(res.readUInt16BE(14 + i * 2));
+  }
+
+  if (result.length < count) {
+    throw new Error(`Incomplete FINS response from ${machine.id}`);
+  }
+
+  return result;
 }
 
 // ============================

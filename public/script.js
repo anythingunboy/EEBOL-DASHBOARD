@@ -33,8 +33,10 @@ function render(cache) {
     const entry = cache[id];
     total++;
 
-    const hasError = !!entry.error;
-    const status = hasError ? 'offline' : (entry.data && entry.data.Status === 'online' ? 'online' : 'offline');
+    const isStale = !!entry.stale;
+    const status = entry.data && entry.data.Status === 'online' ? 'online' : 'offline';
+    const statusClass = isStale ? 'stale' : status;
+    const statusText = isStale ? 'STALE' : status.toUpperCase();
     if (status === 'online') online++; else offline++;
 
     const hour = entry.data && entry.data.Hour != null ? entry.data.Hour : '-';
@@ -42,13 +44,13 @@ function render(cache) {
     const name = entry.name || id;
 
     const card = document.createElement('div');
-    card.className = `machine-card ${status}`;
+    card.className = `machine-card ${statusClass}`;
     card.innerHTML = `
       <div class="mc-name">${name}</div>
       <div class="mc-row">
         <span class="mc-time">${hour}:${String(min).padStart(2, '0')} Hr</span>
       </div>
-      <div class="mc-status ${status}">${status.toUpperCase()}</div>
+      <div class="mc-status ${statusClass}">${statusText}</div>
     `;
     card.addEventListener('click', () => openMachinePopup(id, name));
     grid.appendChild(card);

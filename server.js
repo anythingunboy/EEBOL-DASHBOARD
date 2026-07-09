@@ -25,6 +25,7 @@ const MIN_ADDR  = [3047, 3147, 3247, 3347, 3447, 3547];
 
 const STATUS_WORD = 20;
 const STATUS_BIT = [3,4,5,6,7,8]; //w20.3-8
+const MAIN_POLL_MS = 3000;
 
 // ============================
 // APPLY CONFIG
@@ -73,7 +74,7 @@ async function readMachineMain(machine) {
     data.Status = running ? "online" : "off";
 
   } catch {
-    data.Status = "offline";
+    data.Status = null;
   }
 
   return data;
@@ -138,33 +139,75 @@ async function readMachineDetail(machine) {
 // CACHE (main)
 // ============================
 const CACHE = {};
+let mainPollRunning = false;
+
+function updateMachineCache(machine, data) {
+  const previous = CACHE[machine.id] || {};
+  const previousData = previous.data || {};
+  const statusReadOk = data.Status !== null;
+  const nextData = {
+    ...previousData,
+    ...data,
+    Status: statusReadOk ? data.Status : (previousData.Status || "offline")
+  };
+
+  CACHE[machine.id] = {
+    name: machine.name,
+    data: nextData,
+    stale: !statusReadOk,
+    lastUpdated: new Date().toISOString()
+  };
+}
+
+function markMachinePollError(machine, err) {
+  const previous = CACHE[machine.id] || {};
+
+  CACHE[machine.id] = {
+    name: machine.name,
+    data: previous.data || {
+      Hour: null,
+      Min: null,
+      Status: "offline"
+    },
+    stale: true,
+    error: err.message,
+    lastUpdated: previous.lastUpdated || null
+  };
+}
 
 // ============================
 // ✅ POLLING MAIN ONLY
 // ============================
-setInterval(async () => {
+async function pollMainOnce() {
+  if (mainPollRunning) {
+    console.log("Skipping MAIN poll; previous poll still running");
+    return;
+  }
+
+  mainPollRunning = true;
 
   console.log("🚀 Polling MAIN");
 
-  for (const machine of CONFIG.machines) {
-
-    try {
-
-      const data = await readMachineMain(machine);
-
-      CACHE[machine.id] = {
-        name: machine.name,
-        data
-      };
-
-    } catch {
-      CACHE[machine.id] = {
-        error: "offline"
-      };
+  try {
+    for (const machine of CONFIG.machines) {
+      try {
+        const data = await readMachineMain(machine);
+        updateMachineCache(machine, data);
+      } catch (err) {
+        markMachinePollError(machine, err);
+      }
     }
+  } finally {
+    mainPollRunning = false;
   }
+}
 
-}, 3000);
+async function pollMainLoop() {
+  await pollMainOnce();
+  setTimeout(pollMainLoop, MAIN_POLL_MS);
+}
+
+pollMainLoop();
 
 // ============================
 // ✅ API MAIN

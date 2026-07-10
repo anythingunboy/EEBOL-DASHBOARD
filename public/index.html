@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<img src="YAGEO Tokin.png" alt="Company Logo" width="200" height="70">
 <title>Anodization Machine Status</title>
 <link rel="stylesheet" href="style.css">
 </head>
@@ -10,6 +11,10 @@
   <header class="topbar">
     <h1>Anodization Machine Status</h1>
     <span class="dept-badge">By Equipment Engineering Department</span>
+    <div class="datetime">
+      <div class="time"id="time">--:--</div>
+      <div class="date"id="date">--, --</div>
+    </div>
   </header>
 
   <section class="summary-bar">
@@ -21,6 +26,16 @@
     <div class="summary-item online">
       <div class="summary-label">ONLINE</div>
       <div class="summary-value" id="sumOnline">0</div>
+      <div class="summary-unit">M/C</div>
+    </div>
+      <div class="summary-item MES">
+      <div class="summary-label">MES</div>
+      <div class="summary-value" id="sumMES">0</div>
+      <div class="summary-unit">M/C</div>
+    </div>
+      <div class="summary-item MANUAL">
+      <div class="summary-label">MANUAL</div>
+      <div class="summary-value" id="sumMANUAL">0</div>
       <div class="summary-unit">M/C</div>
     </div>
     <div class="summary-item offline">
@@ -46,13 +61,11 @@
         <div class="tower-lamp">
           <div class="tower-lamp-label">STATUS</div>
           <div class="tower-lamp-lights">
-            <span class="lamp green" id="lampGreen"></span>
-            <span class="lamp red" id="lampRed"></span>
+            <span class="lamp green" id="lampGreen"></span> 
+            <span class="lamp gray" id="lampGray"></span>
           </div>
         </div>
-      </div>
-
-      <div class="modal-loading" id="modalLoading">Reading live data from PLC...</div>
+      <div class="modal-loading" id="modalLoading">Loading data...</div>
       <div class="bath-grid" id="bathGrid"></div>
     </div>
   </div>

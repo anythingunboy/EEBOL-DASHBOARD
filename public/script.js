@@ -7,7 +7,7 @@ const modalMachineName = document.getElementById('modalMachineName');
 const bathGrid = document.getElementById('bathGrid');
 const modalLoading = document.getElementById('modalLoading');
 const lampGreen = document.getElementById('lampGreen');
-const lampRed = document.getElementById('lampRed');
+const lampGray = document.getElementById('lampGray');
 
 // ---------------------------------------------------------------------
 // GRID — poll GET /api/all (the lightweight CACHE the backend already
@@ -24,40 +24,57 @@ async function refreshGrid() {
 }
 
 function render(cache) {
-  const ids = Object.keys(cache).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 
-  let total = 0, online = 0, offline = 0;
+  const ids = Object.keys(cache).sort((a, b) =>
+    a.localeCompare(b, undefined, { numeric: true })
+  );
+
+  let total = 0, online = 0, mes = 0, manual = 0, offline = 0;
+
   grid.innerHTML = '';
 
   ids.forEach((id) => {
+
     const entry = cache[id];
     total++;
 
     const isStale = !!entry.stale;
-    const status = entry.data && entry.data.Status === 'online' ? 'online' : 'offline';
-    const statusClass = isStale ? 'stale' : status;
-    const statusText = isStale ? 'STALE' : status.toUpperCase();
-    if (status === 'online') online++; else offline++;
 
-    const hour = entry.data && entry.data.Hour != null ? entry.data.Hour : '-';
-    const min = entry.data && entry.data.Min != null ? entry.data.Min : '-';
+    const mode = entry.data && entry.data.Mode ? entry.data.Mode : "offline";
+
+    let statusClass = mode;
+    let statusText = mode.toUpperCase();
+
+    if (isStale) {
+      statusClass = "stale";
+      statusText = "STALE";
+    }
+
+    if (mode === "manual") manual++;
+    else if (mode === "mes") mes++;
+    else offline++;
+
+    if (mode !== "offline") online++;
+
     const name = entry.name || id;
 
     const card = document.createElement('div');
     card.className = `machine-card ${statusClass}`;
+
     card.innerHTML = `
       <div class="mc-name">${name}</div>
-      <div class="mc-row">
-        <span class="mc-time">${hour}:${String(min).padStart(2, '0')} Hr</span>
-      </div>
       <div class="mc-status ${statusClass}">${statusText}</div>
     `;
+
     card.addEventListener('click', () => openMachinePopup(id, name));
+
     grid.appendChild(card);
   });
 
   document.getElementById('sumTotal').textContent = total;
   document.getElementById('sumOnline').textContent = online;
+  document.getElementById('sumMES').textContent = mes;
+  document.getElementById('sumMANUAL').textContent = manual;
   document.getElementById('sumOffline').textContent = offline;
 }
 
@@ -101,6 +118,7 @@ function renderBathDetail(data) {
 
   for (let i = 1; i <= 6; i++) {
     const running = !!data[`Run_Bath${i}`];
+    const Status_state = !!data[`Status_Bath${i}`]; //Add status 
     const temp = data[`Temp_Bath${i}`] ?? '-';
     const cond = data[`Cond_Bath${i}`] ?? '-';
     const lot = data[`Lot_Bath${i}`] || '-';
@@ -111,8 +129,8 @@ function renderBathDetail(data) {
     card.className = 'bath-card';
     card.innerHTML = `
       <div class="bath-title">BATH ${i}</div>
-      <div class="bath-row"><span class="label">Running</span>
-        <span class="run-tag ${running ? 'on' : 'off'}">${running ? 'ON' : 'OFF'}</span></div>
+      <div class="bath-row"><span class="label">Mode</span>
+        <span class="run-tag ${running ? 'on' : 'off'}">${running ? 'ON' : 'OFFLINE'}</span></div>
       <div class="bath-row"><span class="label">Lot No.</span><span class="value">${lot}</span></div>
       <div class="bath-row"><span class="label">Time</span><span class="value">${hour} Hour ${min} Minute</span></div>
       <div class="bath-row"><span class="label">Conduct</span><span class="value">${cond} &micro;S/cm</span></div>
@@ -124,10 +142,23 @@ function renderBathDetail(data) {
 
 function setLamp(state) {
   lampGreen.classList.toggle('active', state === 'green');
-  lampRed.classList.toggle('active', state === 'red');
+  lampGray.classList.toggle('active', state === 'gray');
 }
 
 modalClose.addEventListener('click', () => overlay.classList.remove('open'));
 overlay.addEventListener('click', (e) => {
   if (e.target === overlay) overlay.classList.remove('open');
 });
+
+
+function updateDateTime() {
+  const now = new Date();
+  const time = now.toLocaleTimeString("en-US", {hour: "numeric",minute: "2-digit",second: "2-digit"
+  });
+  const date = now.toLocaleDateString("en-US", {weekday: "long",year: "numeric",month: "long",day: "numeric"
+  });
+  document.getElementById("time").textContent = time;
+  document.getElementById("date").textContent = date;
+}
+updateDateTime();
+setInterval(updateDateTime, 1000);

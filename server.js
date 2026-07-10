@@ -23,8 +23,12 @@ const COND_ADDR = [224, 724, 1224, 1724, 2224, 2724];
 const HOUR_ADDR = [3046, 3146, 3246, 3346, 3446, 3546];
 const MIN_ADDR  = [3047, 3147, 3247, 3347, 3447, 3547];
 
-const STATUS_WORD = 20;
-const STATUS_BIT = [3,4,5,6,7,8]; //w20.3-8
+const ON_WORD = 20;
+const ON_BIT = [3,4,5,6,7,8]; //w20.3-8
+
+const STATUS_WORD = [32,33,34,35,36,37];
+const STATUS_BIT = 15; //w32.15
+
 const MAIN_POLL_MS = 3000;
 
 // ============================
@@ -37,17 +41,18 @@ CONFIG.machines = CONFIG.machines.map(m => ({
   // Only whichever machine actually listened on 9622 could ever respond.
   // Now each machine keeps its own port from config.json.
   port: m.port,
-  plcNode: Number(m.ip.split(".")[3]), // ✅ ต้องเป็นแบบนี้
+  plcNode: Number(m.ip.split(".")[3]), //
   pcNode: 36
 }));
 
 // ============================
-// ✅ READ MAIN (เบา)
+// READ MAIN
 // ============================
 async function readMachineMain(machine) {
 
   const data = {};
 
+  // Time
   try {
     const h = await readWords(machine, AREA.D, HOUR_ADDR[0], 1);
     const m = await readWords(machine, AREA.D, MIN_ADDR[0], 1);
@@ -58,30 +63,53 @@ async function readMachineMain(machine) {
     data.Min  = null;
   }
 
-  // Find status
   try {
-    const w = await readWords(machine, AREA.W, STATUS_WORD, 1);
+    //ON READ
+    const w = await readWords(machine, AREA.W, ON_WORD, 1);
 
-    let running = false;
+    let On_read = false;
 
     for (let i = 0; i < 6; i++) {
-      if (((w[0] >> STATUS_BIT[i]) & 1) === 1) {
-        running = true;
+      if (((w[0] >> ON_BIT[i]) & 1) === 1) {
+        On_read = true;
         break;
       }
     }
 
-    data.Status = running ? "online" : "off";
+    // STATUS READ
+    const ws = await readWords(machine, AREA.W, 32, 6);
+
+    let Status_read = false;
+    for (let i = 0; i < 6; i++) {
+      if (((ws[i] >> STATUS_BIT) & 1) === 1) {
+        Status_read = true;
+        break;
+      }
+    }
+
+    // Mode set
+    data.On = On_read;
+    data.Status = On_read ? "online" : "offline";
+
+    if (!On_read) {
+      data.Mode = "offline";
+    } else if (Status_read) {
+      data.Mode = "manual";
+    } else {
+      data.Mode = "mes";
+    }
 
   } catch {
-    data.Status = null;
+    data.On = false;
+    data.Status = "offline";
+    data.Mode = "offline";
   }
 
   return data;
 }
 
 // ============================
-// ✅ READ DETAIL
+//  READ DETAIL
 // ============================
 async function readMachineDetail(machine) {
 
@@ -125,16 +153,21 @@ async function readMachineDetail(machine) {
     }
 
     try {
-      const w = await readWords(machine, AREA.W, STATUS_WORD, 1);
-      result[`Run_Bath${i+1}`] = ((w[0] >> STATUS_BIT[i]) & 1) === 1;
+      const w = await readWords(machine, AREA.W, ON_WORD, 1);
+      result[`Run_Bath${i+1}`] = ((w[0] >> ON_BIT[i]) & 1) === 1;
     } catch {
       result[`Run_Bath${i+1}`] = null;
     }
-  }
 
+    try {
+      const w2 = await readWords(machine, AREA.W, STATUS_WORD[i], 1);
+      result[`Status_Bath${i+1}`] = ((w2[0] >> STATUS_BIT) & 1) === 1;
+    } catch {
+      result[`Status_Bath${i+1}`] = null;
+    }
+  }
   return result;
 }
-
 // ============================
 // CACHE (main)
 // ============================
@@ -167,7 +200,8 @@ function markMachinePollError(machine, err) {
     data: previous.data || {
       Hour: null,
       Min: null,
-      Status: "offline"
+      Status: "offline",
+      On: false
     },
     stale: true,
     error: err.message,
@@ -231,7 +265,7 @@ app.get("/api/machine/:id", async (req, res) => {
 
   try {
 
-    const data = await readMachineDetail(machine);
+    const data = await readMachineDetail(machine)
 
     res.json({
       id: machine.id,

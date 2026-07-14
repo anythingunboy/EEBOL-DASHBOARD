@@ -118,7 +118,7 @@ function sendFinsRaw(machine, cmd) {
 
     const timer = setTimeout(() => {
       settle(reject, new Error(`Timeout reading ${machine.id}`));
-    }, 1000);
+    }, 3000);
 
     pendingRequests.set(key, {
       ip: machine.ip,

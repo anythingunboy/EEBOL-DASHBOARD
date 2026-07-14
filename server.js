@@ -16,20 +16,20 @@ const CONFIG = JSON.parse(fs.readFileSync("./config.json", "utf-8"));
 // ============================
 // ADDRESS PLC
 // ============================
-const TEMP_ADDR = [206, 706, 1206, 1706, 2206, 2706];
-const LOT_ADDR  = [70, 570, 1070, 1570, 2070, 2570];
-const COND_ADDR = [224, 724, 1224, 1724, 2224, 2724];
+const TEMP_ADDR = [206, 706, 1206, 1706, 2206, 2706]; //EM0
+const LOT_ADDR  = [70, 570, 1070, 1570, 2070, 2570]; //EM0
+const COND_ADDR = [224, 724, 1224, 1724, 2224, 2724]; //EM0
 
-const HOUR_ADDR = [3046, 3146, 3246, 3346, 3446, 3546];
-const MIN_ADDR  = [3047, 3147, 3247, 3347, 3447, 3547];
+const HOUR_ADDR = [3046, 3146, 3246, 3346, 3446, 3546]; //D
+const MIN_ADDR  = [3047, 3147, 3247, 3347, 3447, 3547]; //D
 
-const ON_WORD = 20;
-const ON_BIT = [3,4,5,6,7,8]; //w20.3-8
+const ON_WORD = 20;           //POWER MACHINE
+const ON_BIT = [3,4,5,6,7,8]; //W 20.3-8 
 
-const STATUS_WORD = [32,33,34,35,36,37];
-const STATUS_BIT = 15; //w32.15
+const STATUS_WORD = [32,33,34,35,36,37];  //MES MANUAL DETECT
+const STATUS_BIT = 15; //W 32.15 33.15 34.15
 
-const MAIN_POLL_MS = 3000;
+const MAIN_POLL_MS = 5000;
 
 // ============================
 // APPLY CONFIG
@@ -89,24 +89,37 @@ async function readMachineMain(machine) {
 
     // Mode set
     data.On = On_read;
-    data.Status = On_read ? "online" : "offline";
+    data.Status = Status_read;
 
     if (!On_read) {
       data.Mode = "offline";
     } else if (Status_read) {
       data.Mode = "manual";
-    } else {
+    } else { 
       data.Mode = "mes";
     }
 
-  } catch {
-    data.On = false;
-    data.Status = "offline";
-    data.Mode = "offline";
+  } catch(err) {
+    throw err;
   }
 
   return data;
 }
+
+//(Add)For Edit Read EM0 Fisrt 16bit but need to read 32bit that mean 16+16 and float
+async function readFloat(machine, area, addr) {
+
+    const w = await readWords(machine, area, addr, 2);
+
+    const buf = Buffer.alloc(4);
+
+    // Word Swap (3412)
+    buf.writeUInt16BE(w[1], 0);
+    buf.writeUInt16BE(w[0], 2);
+
+    return buf.readFloatBE(0);
+}
+
 
 // ============================
 //  READ DETAIL
@@ -118,29 +131,35 @@ async function readMachineDetail(machine) {
   for (let i = 0; i < 6; i++) {
 
     try {
-      const temp = await readWords(machine, AREA.EM0, TEMP_ADDR[i], 1);
-      result[`Temp_Bath${i+1}`] = temp[0];
+      const temp = await readFloat(machine, AREA.EM0, TEMP_ADDR[i], 1); //Change to readFloat
+      result[`Temp_Bath${i+1}`] = Math.round(temp);
+      console.log( machine.id, `Bath${i + 1}`, "TEMP=", temp ); //Add Log data
+      
     } catch {
       result[`Temp_Bath${i+1}`] = null;
     }
 
     try {
-      const cond = await readWords(machine, AREA.EM0, COND_ADDR[i], 1);
-      result[`Cond_Bath${i+1}`] = cond[0] / 100;
+      const cond = await readFloat(machine, AREA.EM0, COND_ADDR[i], 1);  //Change to readFloat
+      result[`Cond_Bath${i+1}`] = Math.round(cond);
+      console.log( machine.id, `Bath${i + 1}`, "COND =", cond ); //Add Log data
     } catch {
       result[`Cond_Bath${i+1}`] = null;
     }
 
     try {
       const lot = await readWords(machine, AREA.EM0, LOT_ADDR[i], 10);
-      result[`Lot_Bath${i+1}`] = wordsToAscii(lot);
+      const lotNo = wordsToAscii(lot);
+      result[`Lot_Bath${i+1}`] = lotNo;
+      console.log( machine.id, `Bath${i+1}`, "LOT =", lotNo ); //Add Log data
     } catch {
       result[`Lot_Bath${i+1}`] = "";
     }
 
     try {
       const hour = await readWords(machine, AREA.D, HOUR_ADDR[i], 1);
-      result[`Hour_Bath${i+1}`] = hour[0];
+      result[`Hour_Bath${i+1}`] = hour[0]; 
+      console.log( machine.id, `Bath${i + 1}`, "HOUR=", hour[0] ); //Add Log data
     } catch {
       result[`Hour_Bath${i+1}`] = null;
     }
@@ -148,20 +167,25 @@ async function readMachineDetail(machine) {
     try {
       const min = await readWords(machine, AREA.D, MIN_ADDR[i], 1);
       result[`Min_Bath${i+1}`] = min[0];
+      console.log( machine.id, `Bath${i + 1}`, "MIN=", min[0] ); //Add Log data
     } catch {
       result[`Min_Bath${i+1}`] = null;
     }
 
     try {
       const w = await readWords(machine, AREA.W, ON_WORD, 1);
-      result[`Run_Bath${i+1}`] = ((w[0] >> ON_BIT[i]) & 1) === 1;
+      const run = ((w[0] >> ON_BIT[i]) & 1) === 1;
+      result[`Run_Bath${i+1}`] = run;
+      console.log( machine.id, `Bath${i + 1}`, "ON STATUS=", run ); //Add Log data
     } catch {
       result[`Run_Bath${i+1}`] = null;
     }
 
     try {
       const w2 = await readWords(machine, AREA.W, STATUS_WORD[i], 1);
-      result[`Status_Bath${i+1}`] = ((w2[0] >> STATUS_BIT) & 1) === 1;
+      const status = ((w2[0] >> STATUS_BIT) & 1) === 1;
+      result[`Status_Bath${i+1}`] = status;
+      console.log( machine.id, `Bath${i + 1}`, "MES STATUS=", status ); //Add Log data
     } catch {
       result[`Status_Bath${i+1}`] = null;
     }
@@ -175,38 +199,42 @@ const CACHE = {};
 let mainPollRunning = false;
 
 function updateMachineCache(machine, data) {
+
   const previous = CACHE[machine.id] || {};
   const previousData = previous.data || {};
-  const statusReadOk = data.Status !== null;
-  const nextData = {
-    ...previousData,
-    ...data,
-    Status: statusReadOk ? data.Status : (previousData.Status || "offline")
-  };
 
   CACHE[machine.id] = {
     name: machine.name,
-    data: nextData,
-    stale: !statusReadOk,
+    data: {
+      ...previousData,
+      ...data
+    },
+    stale: false,
     lastUpdated: new Date().toISOString()
   };
 }
 
 function markMachinePollError(machine, err) {
+
   const previous = CACHE[machine.id] || {};
 
   CACHE[machine.id] = {
     name: machine.name,
-    data: previous.data || {
-      Hour: null,
-      Min: null,
+    data: {
+      ...(previous.data || {}),
       Status: "offline",
-      On: false
+      Mode: "offline"
     },
     stale: true,
     error: err.message,
     lastUpdated: previous.lastUpdated || null
   };
+  
+  console.log(
+    machine.id,
+    "OFFLINE =>",
+    err.message
+  );
 }
 
 // ============================
@@ -283,7 +311,9 @@ app.get("/api/machine/:id", async (req, res) => {
 
 });
 
+
+
 // ============================
-app.listen(3000, () => {
+app.listen(3000, "0.0.0.0" ,() => {
   console.log("✅ Server running: http://localhost:3000");
 });

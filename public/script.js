@@ -8,6 +8,8 @@ const bathGrid = document.getElementById('bathGrid');
 const modalLoading = document.getElementById('modalLoading');
 const lampGreen = document.getElementById('lampGreen');
 const lampGray = document.getElementById('lampGray');
+const lampYellow = document.getElementById('lampYellow'); //Add yellow
+const lampDarkGreen = document.getElementById('lampDarkGreen'); //Add Dark green
 
 // ---------------------------------------------------------------------
 // GRID — poll GET /api/all (the lightweight CACHE the backend already
@@ -29,7 +31,7 @@ function render(cache) {
     a.localeCompare(b, undefined, { numeric: true })
   );
 
-  let total = 0, online = 0, mes = 0, manual = 0, offline = 0;
+  let total = 0, online = 0, mes = 0, manual = 0, nowip = 0, offline = 0;
 
   grid.innerHTML = '';
 
@@ -45,16 +47,23 @@ function render(cache) {
     let statusClass = mode;
     let statusText = mode.toUpperCase();
 
-    if (isStale) {
-      statusClass = "stale";
-      statusText = "STALE";
-    }
+    //MODE
+    if (mode === "manual") {
+      manual++;
+    } else if (mode === "mes") {
+      mes++;
+    } else if (mode === "nowip") {
+      nowip++;
+    } else if (mode === "idle"){
+      idle++;
+    } else if (mode === "offline") {
+      offline++;
+  }
 
-    if (mode === "manual") manual++;
-    else if (mode === "mes") mes++;
-    else offline++;
-
-    if (mode !== "offline") online++;
+    
+if (mode === "mes" || mode === "manual" || mode === "nowip") {
+    online++;
+}
 
     const name = entry.name || id;
 
@@ -73,8 +82,10 @@ function render(cache) {
 
   document.getElementById('sumTotal').textContent = total;
   document.getElementById('sumOnline').textContent = online;
-  document.getElementById('sumMES').textContent = mes;
-  document.getElementById('sumMANUAL').textContent = manual;
+  document.getElementById('sumMES').textContent = mes; //Add MES
+  document.getElementById('sumMANUAL').textContent = manual; //Add Manual
+  document.getElementById('sumNOWIP').textContent = nowip; //Add nowip
+  //document.getElementById('sumIDLE').textContent = idle; //Add Idle
   document.getElementById('sumOffline').textContent = offline;
 }
 
@@ -143,6 +154,7 @@ function renderBathDetail(data) {
 function setLamp(state) {
   lampGreen.classList.toggle('active', state === 'green');
   lampGray.classList.toggle('active', state === 'gray');
+  
 }
 
 modalClose.addEventListener('click', () => overlay.classList.remove('open'));
@@ -150,7 +162,7 @@ overlay.addEventListener('click', (e) => {
   if (e.target === overlay) overlay.classList.remove('open');
 });
 
-
+//DATE and TIME
 function updateDateTime() {
   const now = new Date();
   const time = now.toLocaleTimeString("en-US", {hour: "numeric",minute: "2-digit",second: "2-digit"

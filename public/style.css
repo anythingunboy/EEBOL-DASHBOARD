@@ -8,32 +8,29 @@ body {
 }
 
 .topbar { display: flex; align-items: baseline; gap: 16px; margin-bottom: 20px; }
-.topbar h1 { color: #d98a2b; font-size: 30px; letter-spacing: 1px; }
+.topbar h1 { color: #d98a2b; font-size: 34px; letter-spacing: 1px; }
 .dept-badge { border: 1px solid #444; color: #9aa0a6; font-size: 14px; padding: 4px 10px; border-radius: 3px; }
 .datetime {margin-left: auto;text-align: right;}
 .time {font-size: 22px;font-weight: bold;color: #e5e5e5;}
 .date {font-size: 16px;color: #9aa0a6;}
 
 /* ---------- summary bar ---------- */
-.summary-bar {
-  display: flex;
-  gap: 40px;
-  border: 1px solid #2a2e33;
-  border-radius: 6px;
-  padding: 16px 24px;
-  margin-bottom: 20px;
-  background: #101318;
-}
-.summary-item { text-align: left; }
+
+.summary-bar {display: grid;grid-template-columns: repeat(7, 1fr);gap: 12px;margin-bottom: 20px;}
+.summary-item {border-radius: 6px;padding: 6px;text-align: center;border: 1px solid #2a2e33;background: #101318;}
 .summary-label { font-size: 14px; color: #8a9099; letter-spacing: 1px; }
-.summary-value { font-size: 26px; font-weight: bold; color: #e5e5e5; }
+.summary-value { font-size: 22px; font-weight: bold; color: #e5e5e5; }
 .summary-unit { font-size: 10px; color: #565b62;}
 .summary-item.online .summary-value { color: #6fd66f; }
-.summary-item.offline .summary-value { color: #5a5959; }
+.summary-item.mes .summary-value { color: #48c937; } /* ---- Add MES Color ----- */
+.summary-item.manual .summary-value { color: #d7d124; } /* ---- Add Manual Color ----- */
+.summary-item.nowip .summary-value { color: #8b7402; } /* ---- Add Manual Color ----- */
+.summary-item.idle .summary-value { color: #858582; } /* ---- Add IDLE Color ----- */
+.summary-item.offline .summary-value { color: #5a5959; } 
 
 /* ---------- machine grid ---------- */
 .grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 8px; }
-@media (max-width: 1400px) { .grid { grid-template-columns: repeat(6, 1fr); } }
+@media (max-width: 1200px) { .grid { grid-template-columns: repeat(6, 1fr); } }
 @media (max-width: 900px)  { .grid { grid-template-columns: repeat(3, 1fr); } }
 
 .machine-card {
@@ -48,11 +45,13 @@ body {
 .machine-card.online  { background: linear-gradient(180deg, #182415 0%, #14181d 60%); }
 .machine-card.offline { background: linear-gradient(180deg, #14181d 0%, #14181d 60%); }
 .machine-card.stale   { background: #1a1414; opacity: 0.7; }
-.machine-card.mes     {background: linear-gradient(180deg, #084d1d 0%, #14181d 60%);}
-.machine-card.manual  {background: linear-gradient(180deg, #593d05 0%, #14181d 60%);}
+.machine-card.mes { background: linear-gradient(180deg, #084d1d 0%, #14181d 60%);}
+.machine-card.manual {background: linear-gradient( 180deg, #593d05 0%, #14181d 60% );}
+.machine-card.nowip {background: linear-gradient(180deg,#47441a 0%, #14181d 60%);}
+/*.machine-card.idle {background: linear-gradient(180deg,#424040 0%,#14181d 60%);} */
 
-
-.mc-name { font-weight: 600; color: #d98a2b; font-size: 13px; }
+/* ---------- machine text ---------- */
+.mc-name { font-weight: 600; color: #d98a2b; font-size: 14px; }
 .mc-row { display: flex; justify-content: space-between; align-items: baseline; margin-top: 6px; font-size: 12px; }
 .mc-time { color: #9aa0a6; }
 .mc-status { margin-top: 8px; font-size: 10px; letter-spacing: 1px; font-weight: bold; }
@@ -61,6 +60,8 @@ body {
 .mc-status.stale   { color: #6b7078; }
 .mc-status.mes {color: #02d341;}
 .mc-status.manual {color: #facc15;}
+.mc-status.nowip {color: #a38407;}
+.mc-status.idle {color: #969897;}  /* ---- Add IDLE State---- */
 
 /* ---------- modal / popup ---------- */
 .modal-overlay {
@@ -83,13 +84,14 @@ body {
   border-radius: 10px;
   padding: 22px 26px;
 }
-
 .modal-header { display: flex; align-items: center; gap: 18px; margin-bottom: 20px; }
 .modal-back { background: none; border: none; color: #9aa0a6; font-size: 18px; cursor: pointer; }
 .modal-title { flex: 1; }
 .modal-title-main { display: block; font-size: 14px; color: #8a9099; }
 .modal-title-sub { display: block; font-size: 24px; font-weight: bold; color: #e5e5e5; }
 
+
+/* ---------- lamp box ---------- */
 .tower-lamp { text-align: center; }
 .tower-lamp-label { font-size: 9px; color: #6b7078; letter-spacing: 1px; margin-bottom: 6px; }
 .tower-lamp-lights { display: flex; gap: 10px; }

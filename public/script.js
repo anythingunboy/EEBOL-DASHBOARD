@@ -84,7 +84,7 @@ if (mode === "mes" || mode === "manual" || mode === "nowip") {
   document.getElementById('sumOnline').textContent = online;
   document.getElementById('sumMES').textContent = mes; //Add MES
   document.getElementById('sumMANUAL').textContent = manual; //Add Manual
-  document.getElementById('sumNOWIP').textContent = nowip; //Add nowip
+  // document.getElementById('sumNOWIP').textContent = nowip; //Add nowip
   //document.getElementById('sumIDLE').textContent = idle; //Add Idle
   document.getElementById('sumOffline').textContent = offline;
 }
@@ -141,7 +141,7 @@ function renderBathDetail(data) {
     card.innerHTML = `
       <div class="bath-title">BATH ${i}</div>
       <div class="bath-row"><span class="label">Mode</span>
-        <span class="run-tag ${running ? 'on' : 'off'}">${running ? 'ON' : 'OFFLINE'}</span></div>
+        <span class="run-tag ${Status_state ? 'manual' : 'mes'}">${Status_state ? 'MANUAL' : 'MES'}</span></div>
       <div class="bath-row"><span class="label">Lot No.</span><span class="value">${lot}</span></div>
       <div class="bath-row"><span class="label">Time</span><span class="value">${hour} Hour ${min} Minute</span></div>
       <div class="bath-row"><span class="label">Conduct</span><span class="value">${cond} &micro;S/cm</span></div>

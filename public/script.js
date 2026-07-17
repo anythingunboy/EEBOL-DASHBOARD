@@ -1,5 +1,13 @@
 const POLL_MS = 3000; // matches backend's setInterval polling rate
 
+const homeDashboard = document.getElementById('homeDashboard');
+const anodizationPanel = document.getElementById('anodizationPanel');
+const pageHeading = document.getElementById('pageHeading');
+const anodizationCard = document.getElementById('anodizationCard');
+const homeTotal = document.getElementById('homeTotal');
+const homeOnline = document.getElementById('homeOnline');
+const homeOffline = document.getElementById('homeOffline');
+
 const grid = document.getElementById('machineGrid');
 const overlay = document.getElementById('modalOverlay');
 const modalClose = document.getElementById('modalClose');
@@ -25,58 +33,57 @@ async function refreshGrid() {
   }
 }
 
+// ---------------------------------------------------------------------
+// 
+// Anodization Panel
+//
+// ---------------------------------------------------------------------
+
 function render(cache) {
 
   const ids = Object.keys(cache).sort((a, b) =>
     a.localeCompare(b, undefined, { numeric: true })
   );
 
-  let total = 0, online = 0, mes = 0, manual = 0, nowip = 0, offline = 0;
+  let total = 0, online = 0, mes = 0, manual = 0, nowip = 0, idle = 0, offline = 0;
 
-  grid.innerHTML = '';
-
-  ids.forEach((id) => {
-
+  const machines = ids.map((id) => {
     const entry = cache[id];
+    const mode = entry.data && entry.data.Mode ? entry.data.Mode : "offline";
+    const name = entry.name || id;
     total++;
 
-    const isStale = !!entry.stale;
-
-    const mode = entry.data && entry.data.Mode ? entry.data.Mode : "offline";
-
-    let statusClass = mode;
-    let statusText = mode.toUpperCase();
-
-    //MODE
     if (mode === "manual") {
       manual++;
+      online++;
     } else if (mode === "mes") {
       mes++;
+      online++;
     } else if (mode === "nowip") {
       nowip++;
-    } else if (mode === "idle"){
+      online++;
+    } else if (mode === "idle") {
       idle++;
     } else if (mode === "offline") {
       offline++;
-  }
+    }
 
-    
-if (mode === "mes" || mode === "manual" || mode === "nowip") {
-    online++;
-}
+    return { id, name, mode };
+  });
 
-    const name = entry.name || id;
+  grid.innerHTML = '';
+
+  machines.forEach(({ id, name, mode }) => {
+    const statusClass = mode;
+    const statusText = mode.toUpperCase();
 
     const card = document.createElement('div');
     card.className = `machine-card ${statusClass}`;
-
     card.innerHTML = `
       <div class="mc-name">${name}</div>
       <div class="mc-status ${statusClass}">${statusText}</div>
     `;
-
     card.addEventListener('click', () => openMachinePopup(id, name));
-
     grid.appendChild(card);
   });
 
@@ -85,8 +92,37 @@ if (mode === "mes" || mode === "manual" || mode === "nowip") {
   document.getElementById('sumMES').textContent = mes;
   document.getElementById('sumMANUAL').textContent = manual;
   document.getElementById('sumOffline').textContent = offline;
+
+  homeTotal.textContent = total;
+  homeOnline.textContent = online;
+  homeOffline.textContent = offline;
 }
 
+const backButton = document.getElementById('backButton');
+
+function showHome() {
+  homeDashboard.hidden = false;
+  anodizationPanel.hidden = true;
+  backButton.hidden = true;
+  pageHeading.textContent = 'Monitor Status Machine';
+}
+
+function showAnodization() {
+  homeDashboard.hidden = true;
+  anodizationPanel.hidden = false;
+  backButton.hidden = false;
+  pageHeading.textContent = 'Anodization Machine Status';
+}
+
+if (anodizationCard) {
+  anodizationCard.addEventListener('click', showAnodization);
+}
+
+if (backButton) {
+  backButton.addEventListener('click', showHome);
+}
+
+showHome();
 refreshGrid();
 setInterval(refreshGrid, POLL_MS);
 

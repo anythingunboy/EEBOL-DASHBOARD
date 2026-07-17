@@ -1,3 +1,7 @@
+/* --------------------------------- */
+/* ---------- Main and Card  ---------- */
+/* ---------------------------------- */
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
@@ -8,26 +12,56 @@ body {
 }
 
 .topbar { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
-.logo-img { height: 50px; width: auto; }
-.topbar h1 { color: #d98a2b; font-size: 34px; letter-spacing: 1px; }
-.dept-badge { border: 1px solid #444; color: #9aa0a6; font-size: 14px; padding: 4px 10px; border-radius: 3px; }
-.datetime {margin-left: auto;text-align: right;}
-.time {font-size: 22px;font-weight: bold;color: #e5e5e5;}
-.date {font-size: 16px;color: #9aa0a6;}
+.logo-img { height: 70px; width: auto; }
+.page-title-group { display: flex; flex-direction: column; gap: 4px; }
+.overall-label { color: #d98a2b; font-size: 36px; letter-spacing: 1px; }
+.topbar h1 { color: #ffffff; font-size: 28px; letter-spacing: 3px; margin: 0; }
+.header-right { margin-left: auto; display: flex; align-items: center; gap: 14px; }
+.dept-badge { border: 1px solid #444; color: #9aa0a6; font-size: 14px; padding: 6px 12px; border-radius: 4px; }
+.back-button { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); color: #fff; padding: 8px 14px; border-radius: 6px; cursor: pointer; }
+.back-button:hover { background: rgba(255,255,255,0.12); }
+.datetime { text-align: right; }
+.time { font-size: 24px; font-weight: bold; color: #e5e5e5; }
+.date { font-size: 18px; color: #9aa0a6; }
+
+.home-dashboard { margin-bottom: 24px; }
+.dashboard-intro { margin-bottom: 24px; }
+.overview-copy { color: #cad2e0; max-width: 720px; line-height: 1.7; }
+.project-grid { display: grid; grid-template-columns: repeat(3, minmax(220px, 1fr)); gap: 16px; }
+.project-card { border-radius: 14px; min-height: 240px; padding: 22px; position: relative; display: flex; align-items: flex-end; background-color: #141a22; border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 10px 30px rgba(0,0,0,0.18); transition: transform .15s ease, border-color .15s ease; background-size: cover; background-position: center center; background-repeat: no-repeat; overflow: hidden; }
+.project-card:hover { transform: translateY(-3px); border-color: rgba(217,138,43,0.4); }
+.project-card::before { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(5,11,18,0.24) 0%, rgba(2,5,9,0.85) 85%); z-index: 0; }
+.project-card-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.35); z-index: 1; }
+.project-card.placeholder { opacity: 0.95; background-color: #141a22; }
+.project-card.project-active { background-color: #171f29; }
+.project-card-content { width: 100%; position: relative; z-index: 2; }
+.project-label { font-size: 22px; color: #ffb700; font-weight: 700; margin-bottom: 10px; }
+.project-status { font-size: 13px; color: #8ee37c; font-weight: 700; letter-spacing: 1px; margin-bottom: 10px; }
+.project-note { font-size: 13px; color: #a38708; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.8px; }
+.project-summary { font-size: 15px; color: #d1d8e3; line-height: 1.6; }
+
+@media (max-width: 980px) { .project-grid { grid-template-columns: repeat(2, minmax(220px, 1fr)); } }
+@media (max-width: 680px) { .project-grid { grid-template-columns: 1fr; } }
+
+
+
+
+/* --------------------------------- */
+/* ---------- Anodization ---------- */
+/* ---------------------------------- */
 
 /* ---------- summary bar ---------- */
-
-.summary-bar {display: grid;grid-template-columns: repeat(7, 1fr);gap: 12px;margin-bottom: 20px;}
-.summary-item {border-radius: 6px;padding: 6px;text-align: center;border: 1px solid #2a2e33;background: #101318;}
+.summary-bar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 12px; margin-bottom: 20px; }
+.summary-item { border-radius: 6px; padding: 10px 12px; text-align: center; border: 1px solid #2a2e33; background: #101318; }
 .summary-label { font-size: 14px; color: #8a9099; letter-spacing: 1px; }
 .summary-value { font-size: 22px; font-weight: bold; color: #e5e5e5; }
-.summary-unit { font-size: 10px; color: #565b62;}
+.summary-unit { font-size: 10px; color: #565b62; }
 .summary-item.online .summary-value { color: #6fd66f; }
-.summary-item.mes .summary-value { color: #48c937; } /* ---- Add MES Color ----- */
-.summary-item.manual .summary-value { color: #d7d124; } /* ---- Add Manual Color ----- */
-.summary-item.nowip .summary-value { color: #8b7402; } /* ---- Add Manual Color ----- */
-.summary-item.idle .summary-value { color: #858582; } /* ---- Add IDLE Color ----- */
-.summary-item.offline .summary-value { color: #5a5959; } 
+.summary-item.mes .summary-value { color: #48c937; }
+.summary-item.manual .summary-value { color: #d7d124; }
+.summary-item.nowip .summary-value { color: #8b7402; }
+.summary-item.idle .summary-value { color: #858582; }
+.summary-item.offline .summary-value { color: #5a5959; }
 
 /* ---------- machine grid ---------- */
 .grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 8px; }
@@ -50,6 +84,58 @@ body {
 .machine-card.manual {background: linear-gradient( 180deg, #593d05 0%, #14181d 60% );}
 .machine-card.nowip {background: linear-gradient(180deg,#47441a 0%, #14181d 60%);}
 /*.machine-card.idle {background: linear-gradient(180deg,#424040 0%,#14181d 60%);} */
+.machine-card.overall {
+  grid-column: span 10;
+  min-height: 190px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  padding: 24px 26px;
+  background: linear-gradient(135deg, #1f2733 0%, #12161d 100%);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+.machine-card.overall .overall-badge {
+  color: #f7c758;
+  letter-spacing: 1.5px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.machine-card.overall .overall-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 8px;
+}
+.machine-card.overall .overall-copy {
+  color: #b2bbca;
+  line-height: 1.5;
+  font-size: 13px;
+  max-width: 520px;
+}
+.machine-card.overall .overall-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(120px, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+.machine-card.overall .metric {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 10px;
+  padding: 16px 16px;
+}
+.machine-card.overall .metric-label { font-size: 11px; letter-spacing: 1px; color: #8ea2b8; text-transform: uppercase; }
+.machine-card.overall .metric-value { font-size: 28px; font-weight: 700; color: #ffffff; margin-top: 6px; }
+.machine-card.placeholder {
+  border-style: dashed;
+  border-color: rgba(255,255,255,0.12);
+  opacity: 0.85;
+}
+.machine-card.placeholder .mc-name { color: #9aa0a6; }
+.machine-card.placeholder .mc-status { color: #7f8b9b; margin-top: 12px; font-weight: 600; }
+.machine-card.placeholder .placeholder-copy { margin-top: 14px; color: #8a98a7; font-size: 12px; line-height: 1.5; }
 
 /* ---------- machine text ---------- */
 .mc-name { font-weight: 600; color: #d98a2b; font-size: 14px; }
@@ -117,3 +203,8 @@ body {
 .bath-row .run-tag.off { color: #6b7078; }
 .bath-row .run-tag.mes { color: #48c937; } /* -- Add MES Status -- */
 .bath-row .run-tag.manual  { color: #facc15; } /* -- Add Manual Status -- */
+
+
+/* --------------------------------- */
+/* ---------- Coming soon  ---------- */
+/* ---------------------------------- */

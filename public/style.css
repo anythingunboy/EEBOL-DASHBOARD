@@ -7,7 +7,8 @@ body {
   padding: 20px;
 }
 
-.topbar { display: flex; align-items: baseline; gap: 16px; margin-bottom: 20px; }
+.topbar { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+.logo-img { height: 50px; width: auto; }
 .topbar h1 { color: #d98a2b; font-size: 34px; letter-spacing: 1px; }
 .dept-badge { border: 1px solid #444; color: #9aa0a6; font-size: 14px; padding: 4px 10px; border-radius: 3px; }
 .datetime {margin-left: auto;text-align: right;}

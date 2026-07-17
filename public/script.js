@@ -82,10 +82,8 @@ if (mode === "mes" || mode === "manual" || mode === "nowip") {
 
   document.getElementById('sumTotal').textContent = total;
   document.getElementById('sumOnline').textContent = online;
-  document.getElementById('sumMES').textContent = mes; //Add MES
-  document.getElementById('sumMANUAL').textContent = manual; //Add Manual
-  // document.getElementById('sumNOWIP').textContent = nowip; //Add nowip
-  //document.getElementById('sumIDLE').textContent = idle; //Add Idle
+  document.getElementById('sumMES').textContent = mes;
+  document.getElementById('sumMANUAL').textContent = manual;
   document.getElementById('sumOffline').textContent = offline;
 }
 

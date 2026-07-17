@@ -314,6 +314,28 @@ app.get("/api/machine/:id", async (req, res) => {
 
 
 // ============================
-app.listen(3000, "0.0.0.0" ,() => {
-  console.log("✅ Server running: http://localhost:3000");
+const os = require("os");
+
+function getLocalIP() {
+  const interfaces = os.networkInterfaces();
+  for (const name of Object.keys(interfaces)) {
+    for (const iface of interfaces[name]) {
+      if (iface.family === "IPv4" && !iface.internal) {
+        return iface.address;
+      }
+    }
+  }
+  return "localhost";
+}
+
+const PORT = 3000;
+const localIP = getLocalIP();
+
+app.listen(PORT, "0.0.0.0", () => {
+  console.log("\n" + "=".repeat(60));
+  console.log("✅ SERVER RUNNING");
+  console.log("=".repeat(60));
+  console.log(`📍 Local: http://localhost:${PORT}`);
+  console.log(`📍 LAN: http://${localIP}:${PORT}`);
+  console.log("=".repeat(60) + "\n");
 });
